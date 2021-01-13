@@ -1,8 +1,17 @@
 
 
+import sys
 import json
-import datetime, time, calendar, re, sys, traceback, urllib
-from urllib2 import Request, urlopen, HTTPError
+import datetime, time, calendar, re, traceback
+
+if sys.version_info.major >= 3:  # Python 3
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+    from urllib.parse import urlencode
+else:  # Python 2
+    from urllib2 import Request, urlopen, HTTPError
+    from urllib import urlencode
+
 from datetime import timedelta
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 from xml.dom.minidom import parseString

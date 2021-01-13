@@ -1,10 +1,18 @@
 
 
+import sys
 import datetime
 import time
 import json
-import urllib
-from urllib2 import Request, urlopen, HTTPError
+
+if sys.version_info.major >= 3:  # Python 3
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+    from urllib.parse import urlencode
+else:  # Python 2
+    from urllib2 import Request, urlopen, HTTPError
+    from urllib import urlencode
+
 from xml.dom.minidom import parseString
 
 import pytz
