@@ -3,7 +3,6 @@
 import datetime
 import time
 import json
-import sys
 import urllib
 import urllib2
 from xml.dom.minidom import parseString
@@ -12,7 +11,6 @@ import pytz
 
 import xbmc
 import xbmcaddon
-import xbmcplugin
 
 import common
 from shareddata import SharedData
