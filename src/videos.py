@@ -92,7 +92,7 @@ def videoListMenu():
         )
 
     base_url = "https://neulionscnba-a.akamaihd.net/solr/nba_program/usersearch/?"
-    params = urllib.urlencode({
+    params = urlencode({
         "wt": "json",
         "json.wrf": "updateVideoBoxCallback",
         "q": query,
@@ -172,7 +172,7 @@ def videoPlay():
         'Content-type': 'application/x-www-form-urlencoded',
         'User-Agent': "Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0",
     }
-    body = urllib.urlencode({
+    body = urlencode({
         'id': str(video_id),
         'bitrate': 800,
         'type': 'video',

@@ -118,7 +118,7 @@ class TV:
             'format': 'xml',
         }
 
-        body = urllib.urlencode(body)
+        body = urlencode(body)
         utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
 
         try:
@@ -159,7 +159,7 @@ class TV:
             'format': 'xml',
         }
 
-        body = urllib.urlencode(body)
+        body = urlencode(body)
         utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
 
         try:

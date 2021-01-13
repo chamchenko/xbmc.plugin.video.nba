@@ -141,7 +141,7 @@ def authenticate():
             'accesstoken': 'true',
             'ciamlogin': 'true',
         }
-        body = urllib.urlencode(body)
+        body = urlencode(body)
 
         request = Request('https://watch.nba.com/secure/authenticate', body, headers)
         xbmc.log(str(request.get_data()), xbmc.LOGDEBUG)

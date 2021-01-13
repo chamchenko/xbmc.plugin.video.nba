@@ -80,7 +80,7 @@ def get_game(video_id, video_type, video_ishomefeed, start_time, duration):
     if vars.params.get("camera_number"):
         body['cam'] = vars.params.get("camera_number")
 
-    body = urllib.urlencode(body)
+    body = urlencode(body)
     utils.log("the body of publishpoint request is: %s" % body, xbmc.LOGDEBUG)
 
     try:
@@ -107,7 +107,7 @@ def getHighlightGameUrl(video_id):
         'User-Agent': "AppleCoreMedia/1.0.0.8C148a (iPad; U; CPU OS 6_2_1 like Mac OS X; en_us)",
     }
 
-    body = urllib.urlencode({
+    body = urlencode({
         'extid': str(video_id),
         'plid': vars.player_id,
         'gt': "64",
