@@ -4,7 +4,7 @@ import datetime
 import os
 import traceback
 import urllib
-import urllib2
+from urllib2 import Request, urlopen, HTTPError
 import urlparse
 import sys
 
@@ -23,8 +23,8 @@ import vars
 
 def fetch(url):
     log('Fetching %s' % url, xbmc.LOGINFO)
-    request = urllib2.Request(url)
-    response = str(urllib2.urlopen(request).read())
+    request = Request(url)
+    response = str(urlopen(request).read())
     log(response, xbmc.LOGDEBUG)
     return response
 

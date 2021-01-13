@@ -4,7 +4,7 @@ import datetime
 import time
 import json
 import urllib
-import urllib2
+from urllib2 import Request, urlopen, HTTPError
 from xml.dom.minidom import parseString
 
 import pytz
@@ -114,10 +114,10 @@ class TV:
         utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
 
         try:
-            request = urllib2.Request(url, body, headers)
-            response = urllib2.urlopen(request)
+            request = Request(url, body, headers)
+            response = urlopen(request)
             content = response.read()
-        except urllib2.HTTPError as err:
+        except HTTPError as err:
             utils.logHttpException(err, url)
             utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
             return None
@@ -155,10 +155,10 @@ class TV:
         utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
 
         try:
-            request = urllib2.Request(url, body, headers)
-            response = urllib2.urlopen(request)
+            request = Request(url, body, headers)
+            response = urlopen(request)
             content = response.read()
-        except urllib2.HTTPError as err:
+        except HTTPError as err:
             utils.logHttpException(err, url)
             utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
             return None

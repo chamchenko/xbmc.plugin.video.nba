@@ -1,7 +1,8 @@
 
 
 import json
-import datetime, time, calendar, re, sys, traceback, urllib, urllib2
+import datetime, time, calendar, re, sys, traceback, urllib
+from urllib2 import Request, urlopen, HTTPError
 from datetime import timedelta
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 from xml.dom.minidom import parseString
@@ -74,10 +75,10 @@ def get_game(video_id, video_type, video_ishomefeed, start_time, duration):
     utils.log("the body of publishpoint request is: %s" % body, xbmc.LOGDEBUG)
 
     try:
-        request = urllib2.Request(url, body, headers)
-        response = urllib2.urlopen(request)
+        request = Request(url, body, headers)
+        response = urlopen(request)
         content = response.read()
-    except urllib2.HTTPError as err:
+    except HTTPError as err:
         utils.logHttpException(err, url)
         utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
         return None
@@ -108,10 +109,10 @@ def getHighlightGameUrl(video_id):
     utils.log("the body of publishpoint request is: %s" % body, xbmc.LOGDEBUG)
 
     try:
-        request = urllib2.Request(url, body, headers)
-        response = urllib2.urlopen(request)
+        request = Request(url, body, headers)
+        response = urlopen(request)
         content = response.read()
-    except urllib2.HTTPError as ex:
+    except HTTPError as ex:
         utils.log("Highlight url not found. Error: %s - body: %s" % (str(ex), ex.read()), xbmc.LOGERROR)
         return ''
 
@@ -135,8 +136,8 @@ def addGamesLinks(date='', video_type="archive"):
             (date.year, date.month, date.day, time.time())
         utils.log('Requesting %s' % schedule, xbmc.LOGDEBUG)
 
-        schedule_request = urllib2.Request(schedule, None)
-        schedule_response = str(urllib2.urlopen(schedule_request).read())
+        schedule_request = Request(schedule, None)
+        schedule_response = str(urlopen(schedule_request).read())
         schedule_json = json.loads(schedule_response[schedule_response.find("{"):])
 
         unknown_teams = {}
