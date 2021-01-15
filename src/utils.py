@@ -137,7 +137,7 @@ def addListItem(name, url, mode, iconimage, isfolder=False, usefullurl=False, cu
 
     # Fix problems of encoding with urlencode and utf8 chars
     for key, value in params.iteritems():
-        params[key] = unicode(value).encode('utf-8')
+        params[key] = value.encode('utf8')
 
     # urlencode the params
     params = urlencode(params)
