@@ -8,7 +8,7 @@ import os
 import traceback
 
 if sys.version_info.major >= 3:  # Python 3
-    from urllib.request import urlopen
+    from urllib.request import Request, urlopen
     from urllib.error import HTTPError
     from urllib.parse import unquote_plus, urlencode, urlparse, parse_qs
 else:  # Python 2
