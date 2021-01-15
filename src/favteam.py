@@ -133,7 +133,7 @@ def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
         if unknown_teams:
             log("Unknown teams: %s" % str(unknown_teams), xbmc.LOGWARNING)
 
-    except Exception, e:
+    except Exception as e:
         xbmc.executebuiltin('Notification(NBA League Pass,'+str(e)+',5000,)')
         log(traceback.format_exc(), xbmc.LOGDEBUG)
         pass

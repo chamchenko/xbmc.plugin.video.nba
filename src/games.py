@@ -283,7 +283,7 @@ def addGamesLinks(date='', video_type="archive"):
         if unknown_teams:
             utils.log("Unknown teams: %s" % str(unknown_teams), xbmc.LOGWARNING)
 
-    except Exception, e:
+    except Exception as e:
         utils.littleErrorPopup("Error: %s" % str(e))
         utils.log(traceback.format_exc(), xbmc.LOGDEBUG)
         pass
