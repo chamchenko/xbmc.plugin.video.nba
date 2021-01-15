@@ -2,7 +2,8 @@
 
 from __future__ import unicode_literals
 
-import xbmc, xbmcaddon
+from xbmcvfs import translatePath, exists, mkdir
+import xbmcaddon
 import json
 import os, binascii
 
@@ -31,7 +32,7 @@ cookies = None
 access_token = None
 
 player_id = binascii.b2a_hex(os.urandom(16))
-addon_dir = xbmc.translatePath(settings.getAddonInfo('path'))
+addon_dir = translatePath(settings.getAddonInfo('path'))
 
 # the default fanart image
 fanart_image = os.path.join(addon_dir, "fanart.jpg")

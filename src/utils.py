@@ -20,10 +20,10 @@ from dateutil import tz
 import pytz
 
 import xbmc
+from xbmcvfs import translatePath, exists, mkdir
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-import xbmcvfs
 
 from PIL import Image, ImageOps
 import vars
@@ -180,9 +180,9 @@ def prepareSingleThumbnail(im, width, height):
     return im
 
 def generateCombinedThumbnail(v, h, width=2*500, height=500, padding=10):
-    thumbnails_path = os.path.join(xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')), "thumbnails")
-    if not xbmcvfs.exists(thumbnails_path):
-        xbmcvfs.mkdir(thumbnails_path)
+    thumbnails_path = os.path.join(translatePath(xbmcaddon.Addon().getAddonInfo('profile')), "thumbnails")
+    if not exists(thumbnails_path):
+        mkdir(thumbnails_path)
     combined_thumbnail_fullname = os.path.join(thumbnails_path, ("%s-%s.png" % (v.lower(), h.lower())))
     if vars.use_cached_thumbnails and os.path.isfile(combined_thumbnail_fullname):
         return combined_thumbnail_fullname

@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 
 from tv import TV
 
-import xbmc, xbmcaddon
+from xbmcvfs import translatePath, exists, mkdir
+import xbmcaddon
 import time, urllib, os, sys
 
 if sys.version_info.major >= 3:  # Python 3
@@ -21,7 +22,7 @@ import vars
 
 # Add src/service in load paths
 my_addon = xbmcaddon.Addon(vars.__addon_id__)
-addon_dir = xbmc.translatePath(my_addon.getAddonInfo('path'))
+addon_dir = translatePath(my_addon.getAddonInfo('path'))
 sys.path.append(os.path.join(addon_dir, 'src', 'service'))
 
 import utils
