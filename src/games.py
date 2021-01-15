@@ -7,10 +7,10 @@ import datetime, time, calendar, re, traceback
 if sys.version_info.major >= 3:  # Python 3
     from urllib.request import urlopen
     from urllib.error import HTTPError
-    from urllib.parse import urlencode, urlparse, parse_qs
+    from urllib.parse import unquote_plus, urlencode, urlparse, parse_qs
 else:  # Python 2
     from urllib2 import Request, urlopen, HTTPError
-    from urllib import urlencode
+    from urllib import unquote_plus, urlencode
     from urlparse import urlparse, parse_qs
 
 from datetime import timedelta

@@ -2,7 +2,16 @@
 
 from datetime import date
 from datetime import timedelta
-import urllib
+
+if sys.version_info.major >= 3:  # Python 3
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+    from urllib.parse import unquote_plus, urlencode, urlparse, parse_qs
+else:  # Python 2
+    from urllib2 import Request, urlopen, HTTPError
+    from urllib import unquote_plus, urlencode
+    from urlparse import urlparse, parse_qs
+
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 import sys
 
@@ -64,7 +73,7 @@ def previousSeasonMenu():
         start_date = start_date + timedelta(7)
 
 params = getParams()
-url = urllib.unquote_plus(params.get("url", ""))
+url = unquote_plus(params.get("url", ""))
 mode = params.get("mode", None)
 
 # Save the params in 'vars' to retrieve it in the functions

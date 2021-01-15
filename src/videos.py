@@ -8,10 +8,10 @@ from datetime import timedelta
 if sys.version_info.major >= 3:  # Python 3
     from urllib.request import urlopen
     from urllib.error import HTTPError
-    from urllib.parse import urlencode, urlparse, parse_qs
+    from urllib.parse import unquote_plus, urlencode, urlparse, parse_qs
 else:  # Python 2
     from urllib2 import Request, urlopen, HTTPError
-    from urllib import urlencode
+    from urllib import unquote_plus, urlencode
     from urlparse import urlparse, parse_qs
 
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
@@ -67,7 +67,7 @@ def videoListMenu():
     per_page = 20
 
     if video_query:
-        video_query = urllib.unquote_plus(video_query)
+        video_query = unquote_plus(video_query)
 
     log("videoListMenu: date requested is %s, tag is %s, query is %s, page is %d" % (date, video_tag, video_query, page), xbmc.LOGDEBUG)
 
