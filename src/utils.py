@@ -10,12 +10,11 @@ import traceback
 if sys.version_info.major >= 3:  # Python 3
     from urllib.request import urlopen
     from urllib.error import HTTPError
-    from urllib.parse import urlencode
+    from urllib.parse import urlencode, urlparse, parse_qs
 else:  # Python 2
     from urllib2 import Request, urlopen, HTTPError
     from urllib import urlencode
-
-import urlparse
+    from urlparse import urlparse, parse_qs
 
 from dateutil import tz
 import pytz
@@ -114,8 +113,7 @@ def getParams():
         if paramstring[len(paramstring)-1] == '/':
             paramstring = paramstring[0:len(paramstring)-2]
 
-        params = urlparse.parse_qsl(paramstring)
-        params = dict(params)
+        params = parse_qs(paramstring)
     return params
 
 def addVideoListItem(name, url, iconimage):

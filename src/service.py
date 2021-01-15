@@ -6,7 +6,15 @@ from tv import TV
 
 import xbmc, xbmcaddon
 import time, urllib, os, sys
-from urlparse import urlparse, parse_qs
+
+if sys.version_info.major >= 3:  # Python 3
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+    from urllib.parse import urlencode, urlparse, parse_qs
+else:  # Python 2
+    from urllib2 import Request, urlopen, HTTPError
+    from urllib import urlencode
+    from urlparse import urlparse, parse_qs
 
 import vars
 
