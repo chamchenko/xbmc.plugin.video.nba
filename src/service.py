@@ -13,7 +13,7 @@ import vars
 
 # Add src/service in load paths
 my_addon = xbmcaddon.Addon(vars.__addon_id__)
-addon_dir = xbmc.translatePath(my_addon.getAddonInfo('path')).decode('utf-8')
+addon_dir = xbmc.translatePath(my_addon.getAddonInfo('path'))
 sys.path.append(os.path.join(addon_dir, 'src', 'service'))
 
 import utils
