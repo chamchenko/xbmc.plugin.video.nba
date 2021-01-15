@@ -1,5 +1,7 @@
 
 
+from __future__ import unicode_literals
+
 import xbmc, xbmcaddon
 import json
 import os, binascii

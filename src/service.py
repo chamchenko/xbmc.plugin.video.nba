@@ -1,5 +1,7 @@
 
 
+from __future__ import unicode_literals
+
 from tv import TV
 
 import xbmc, xbmcaddon
