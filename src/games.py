@@ -1,17 +1,24 @@
 
 
 import json
-import datetime, time, calendar, re, sys, traceback, urllib, urllib2
+import datetime, time, calendar, re, sys, traceback
 from datetime import timedelta
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 from xml.dom.minidom import parseString
 import common, utils
 import vars
 
+try:
+    from urllib.parse import quote
+    from urllib.parse import urlencode
+    import urllib.request  as urllib2
+except ImportError:
+    from urllib import quote
+    from urllib import urlencode
+    import urllib2
 
 def get_game(video_id, video_type, video_ishomefeed, start_time, duration):
     utils.log("cookies: %s %s" % (video_type, vars.cookies), xbmc.LOGDEBUG)
-
     # video_type could be archive, live, condensed or oldseason
     if video_type not in ["live", "archive", "condensed"]:
         video_type = "archive"
@@ -70,19 +77,17 @@ def get_game(video_id, video_type, video_ishomefeed, start_time, duration):
     if vars.params.get("camera_number"):
         body['cam'] = vars.params.get("camera_number")
 
-    body = urllib.urlencode(body)
+    body = urlencode(body).encode()
     utils.log("the body of publishpoint request is: %s" % body, xbmc.LOGDEBUG)
-
     try:
         request = urllib2.Request(url, body, headers)
-        response = urllib2.urlopen(request)
+        response = urllib2.urlopen(request, timeout=30)
         content = response.read()
     except urllib2.HTTPError as err:
         utils.logHttpException(err, url)
         utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
         return None
-
-    xml = parseString(str(content))
+    xml = parseString(str(content, 'utf-8'))
     url = xml.getElementsByTagName("path")[0].childNodes[0].nodeValue
     utils.log("response URL from publishpoint: %s" % url, xbmc.LOGDEBUG)
     drm = xml.getElementsByTagName("drmToken")[0].childNodes[0].nodeValue
@@ -101,7 +106,7 @@ def get_game(video_id, video_type, video_ishomefeed, start_time, duration):
             querystring = match.group(4)
 
             livecookies = "nlqptid=%s" % (querystring)
-            livecookiesencoded = urllib.quote(livecookies)
+            livecookiesencoded = quote(livecookies)
 
             utils.log("live cookie: %s %s" % (querystring, livecookies), xbmc.LOGDEBUG)
 
@@ -125,25 +130,25 @@ def getHighlightGameUrl(video_id):
         'User-Agent': "AppleCoreMedia/1.0.0.8C148a (iPad; U; CPU OS 6_2_1 like Mac OS X; en_us)",
     }
 
-    body = urllib.urlencode({
+    body = urlencode({
         'extid': str(video_id),
         'plid': vars.player_id,
         'gt': "64",
         'type': 'game',
         'bitrate': "1600"
-    })
+    }).encode()
 
     utils.log("the body of publishpoint request is: %s" % body, xbmc.LOGDEBUG)
 
     try:
         request = urllib2.Request(url, body, headers)
-        response = urllib2.urlopen(request)
+        response = urllib2.urlopen(request, timeout=30)
         content = response.read()
     except urllib2.HTTPError as ex:
-        utils.log("Highlight url not found. Error: %s - body: %s" % (str(ex), ex.read()), xbmc.LOGERROR)
+        utils.log("Highlight url not found. Error: %s - body: %s" % (str(ex, 'utf8'), ex.read()), xbmc.LOGERROR)
         return ''
 
-    xml = parseString(str(content))
+    xml = parseString(str(content, 'utf8'))
     url = xml.getElementsByTagName("path")[0].childNodes[0].nodeValue
 
     # Remove everything after ? otherwise XBMC fails to read the rtpm stream
@@ -162,9 +167,8 @@ def addGamesLinks(date='', video_type="archive"):
         schedule = 'https://nlnbamdnyc-a.akamaihd.net/fs/nba/feeds_s2019/schedule/%04d/%d_%d.js?t=%d' % \
             (date.year, date.month, date.day, time.time())
         utils.log('Requesting %s' % schedule, xbmc.LOGDEBUG)
-
-        schedule_request = urllib2.Request(schedule, None)
-        schedule_response = str(urllib2.urlopen(schedule_request).read())
+        schedule_request = urllib2.Request(schedule)
+        schedule_response = str(urllib2.urlopen(schedule_request, timeout=30).read(), 'utf-8')
         schedule_json = json.loads(schedule_response[schedule_response.find("{"):])
 
         unknown_teams = {}
@@ -298,10 +302,10 @@ def addGamesLinks(date='', video_type="archive"):
                 utils.log('Remaining keys: {}'.format(remaining_keys), xbmc.LOGDEBUG)
 
         if unknown_teams:
-            utils.log("Unknown teams: %s" % str(unknown_teams), xbmc.LOGWARNING)
+            utils.log("Unknown teams: %s" % str(unknown_teams, 'utf8'), xbmc.LOGWARNING)
 
-    except Exception, e:
-        utils.littleErrorPopup("Error: %s" % str(e))
+    except Exception as e:
+        utils.littleErrorPopup("Error: %s" % str(e, 'utf8'))
         utils.log(traceback.format_exc(), xbmc.LOGDEBUG)
         pass
 
@@ -424,7 +428,7 @@ def chooseGameMenu(mode, video_type, date2Use=None):
             date = date2Use
         else:
             date = utils.nowEST()
-            utils.log("current date (america timezone) is %s" % str(date), xbmc.LOGDEBUG)
+            utils.log("current date (america timezone) is %s" % date, xbmc.LOGDEBUG)
 
         # Starts on mondays
         day = date.isoweekday()

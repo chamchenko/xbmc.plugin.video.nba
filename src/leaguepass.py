@@ -2,7 +2,6 @@
 
 from datetime import date
 from datetime import timedelta
-import urllib
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 import sys
 
@@ -14,7 +13,10 @@ from favteam import *
 import vars
 
 from tv import TV
-
+try:
+    from urllib.parse import unquote_plus
+except ImportError:
+    from urllib import unquote_plus
 
 def mainMenu():
     addListItem('Live games', 'live', 'live', '', isfolder=True)
@@ -64,7 +66,7 @@ def previousSeasonMenu():
         start_date = start_date + timedelta(7)
 
 params = getParams()
-url = urllib.unquote_plus(params.get("url", ""))
+url = unquote_plus(params.get("url", ""))
 mode = params.get("mode", None)
 
 # Save the params in 'vars' to retrieve it in the functions

@@ -4,8 +4,7 @@ import datetime
 import time
 import json
 import sys
-import urllib
-import urllib2
+
 from xml.dom.minidom import parseString
 
 import pytz
@@ -19,6 +18,12 @@ from shareddata import SharedData
 import utils
 import vars
 
+try:
+    from urllib.parse import urlencode
+    import urllib.request  as urllib2
+except ImportError:
+    from urllib import urlencode
+    import urllib2
 
 class TV:
 
@@ -112,12 +117,12 @@ class TV:
             'format': 'xml',
         }
 
-        body = urllib.urlencode(body)
+        body = urlencode(body)
         utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
 
         try:
             request = urllib2.Request(url, body, headers)
-            response = urllib2.urlopen(request)
+            response = urllib2.urlopen(request, timeout=30)
             content = response.read()
         except urllib2.HTTPError as err:
             utils.logHttpException(err, url)
@@ -153,12 +158,12 @@ class TV:
             'format': 'xml',
         }
 
-        body = urllib.urlencode(body)
+        body = urlencode(body)
         utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
 
         try:
             request = urllib2.Request(url, body, headers)
-            response = urllib2.urlopen(request)
+            response = urllib2.urlopen(request, timeout=30)
             content = response.read()
         except urllib2.HTTPError as err:
             utils.logHttpException(err, url)

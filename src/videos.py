@@ -3,7 +3,7 @@
 import json
 import datetime, time
 from datetime import timedelta
-import urllib, urllib2
+
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 from xml.dom.minidom import parseString
 import re
@@ -11,7 +11,14 @@ import re
 from utils import *
 from common import *
 import vars
-
+try:
+    from urllib.parse import unquote_plus
+    from urllib.parse import urlencode
+    import urllib.request  as urllib2
+except ImportError:
+    from urllib import unquote_plus
+    from urllib import urlencode
+    import urllib2
 
 def videoDateMenu():
     video_tag = vars.params.get("video_tag")
@@ -57,7 +64,7 @@ def videoListMenu():
     per_page = 20
 
     if video_query:
-        video_query = urllib.unquote_plus(video_query)
+        video_query = unquote_plus(video_query)
 
     log("videoListMenu: date requested is %s, tag is %s, query is %s, page is %d" % (date, video_tag, video_query, page), xbmc.LOGDEBUG)
 
@@ -83,7 +90,7 @@ def videoListMenu():
         )
 
     base_url = "https://neulionscnba-a.akamaihd.net/solr/nba_program/usersearch/?"
-    params = urllib.urlencode({
+    params = urlencode({
         "wt": "json",
         "json.wrf": "updateVideoBoxCallback",
         "q": query,
@@ -163,7 +170,7 @@ def videoPlay():
         'Content-type': 'application/x-www-form-urlencoded',
         'User-Agent': "Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0",
     }
-    body = urllib.urlencode({
+    body = urlencode({
         'id': str(video_id),
         'bitrate': 800,
         'type': 'video',
@@ -173,7 +180,7 @@ def videoPlay():
 
     try:
         request = urllib2.Request(url, headers=headers)
-        response = urllib2.urlopen(request, body)
+        response = urllib2.urlopen(request, body, timeout=30)
         content = response.read()
     except urllib2.HTTPError as e:
         logHttpException(e, url, body)

@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 
-
-import xbmc, xbmcaddon
+import xbmc, xbmcaddon, xbmcvfs
 import json
 import os, binascii
 
@@ -10,7 +10,7 @@ try:
 except:
     import storageserverdummy as StorageServer
 
-__addon_name__ = "NBA League Pass"
+__addon_name__ = "NBA League Pass II (kokan)"
 __addon_id__ = "plugin.video.nba"
 
 # Global variables
@@ -29,7 +29,7 @@ cookies = None
 access_token = None
 
 player_id = binascii.b2a_hex(os.urandom(16))
-addon_dir = xbmc.translatePath(settings.getAddonInfo('path')).decode('utf-8')
+addon_dir = xbmcvfs.translatePath(settings.getAddonInfo('path'))
 
 # the default fanart image
 fanart_image = os.path.join(addon_dir, "fanart.jpg")
@@ -39,12 +39,12 @@ if setting_fanart_image != '':
 
 try:
     config_path = os.path.join(addon_dir, "config", "config.json")
-    config_json = open(config_path).read()
+    config_json = open(config_path, encoding="utf-8").read()
     config = json.loads(config_json)
 except:
     root_path = os.path.dirname(os.path.realpath(__file__))
     config_path = os.path.join(root_path, "..", "config", "config.json")
-    config_json = open(config_path).read()
+    config_json = open(config_path, encoding="utf-8").read()
     config = json.loads(config_json)
     pass
 
