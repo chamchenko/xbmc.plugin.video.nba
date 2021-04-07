@@ -117,7 +117,7 @@ class TV:
             'format': 'xml',
         }
 
-        body = urlencode(body)
+        body = urlencode(body).encode()
         utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
 
         try:
@@ -129,7 +129,7 @@ class TV:
             utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
             return None
 
-        xml = parseString(str(content))
+        xml = parseString(str(content, 'utf-8'))
         url = xml.getElementsByTagName('path')[0].childNodes[0].nodeValue
         utils.log('response URL from publishpoint: %s' % url, xbmc.LOGDEBUG)
         drm = xml.getElementsByTagName('drmToken')[0].childNodes[0].nodeValue
@@ -158,7 +158,7 @@ class TV:
             'format': 'xml',
         }
 
-        body = urlencode(body)
+        body = urlencode(body).encode()
         utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
 
         try:
@@ -170,7 +170,7 @@ class TV:
             utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
             return None
 
-        xml = parseString(str(content))
+        xml = parseString(str(content, 'utf-8'))
         url = xml.getElementsByTagName('path')[0].childNodes[0].nodeValue
         utils.log('response URL from publishpoint: %s' % url, xbmc.LOGDEBUG)
         drm = xml.getElementsByTagName('drmToken')[0].childNodes[0].nodeValue

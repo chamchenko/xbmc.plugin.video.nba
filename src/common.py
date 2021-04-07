@@ -87,7 +87,7 @@ def get_date(default='', heading='Please enter date (YYYY/MM/DD)', hidden=False)
     keyboard.doModal()
     ret = datetime.date.today()
     if keyboard.isConfirmed():
-        sDate = keyboard.getText().decode("utf-8")
+        sDate = keyboard.getText()
         temp = sDate.split("/")
         ret = datetime.date(int(temp[0]), int(temp[1]), int(temp[2]))
     return ret
