@@ -15,6 +15,7 @@ import xbmcplugin
 
 import common
 from shareddata import SharedData
+from videos import videoMenu
 import utils
 import vars
 
@@ -33,6 +34,9 @@ class TV:
         common.addListItem('Today\'s programming', '', 'nba_tv_episode_menu', '', isfolder=True)
         common.addListItem('Select date', '', 'nba_tv_episode_menu', '', isfolder=True, customparams={
             'custom_date': True
+        })
+        common.addListItem('Video Collections', '', 'video', '', isfolder=True, customparams={
+            'url': 'https://content-api-prod.nba.com/public/1/endeavor/layout/watch/nbatv'
         })
 
     @staticmethod

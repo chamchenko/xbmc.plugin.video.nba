@@ -37,7 +37,9 @@ def videoDateMenu():
 
 def videoMenu():
     xbmcplugin.setContent(int(sys.argv[1]), 'videos')
-    url = "https://content-api-prod.nba.com/public/1/endeavor/layout/watch/landing"
+    url = vars.params.get("url", None)
+    if not url:
+        url = "https://content-api-prod.nba.com/public/1/endeavor/layout/watch/landing"
     json_parser = json.loads(str(urllib2.urlopen(url).read(), 'utf-8'))
     for category in json_parser['results']['carousels']:
         if category['type'] == "video_carousel":
