@@ -36,17 +36,18 @@ def videoDateMenu():
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 def videoMenu():
+    xbmcplugin.setContent(int(sys.argv[1]), 'videos')
     url = "https://content-api-prod.nba.com/public/1/endeavor/layout/watch/landing"
     json_parser = json.loads(str(urllib2.urlopen(url).read(), 'utf-8'))
     for category in json_parser['results']['carousels']:
         if category['type'] == "video_carousel":
             addListItem(category['title'], '',
-                'videolist', '',True,
+                'videolist', category['value']['videos'][0]['image'], True,
                 customparams={'video_tag':category['value']['slug'], 'pagination': True})
         elif category['type'] == "collection_cards":
             for collection in category['value']['items']:
                 addListItem(collection['name'], '',
-                'videolist', '',True,
+                'videolist', collection['image'], True,
                 customparams={'video_tag':collection['slug'], 'pagination': True})
 
 def videoListMenu():
@@ -106,8 +107,6 @@ def videoListMenu():
             'page': page + 1,
             'pagination': True
         }
-        if date:
-            custom_params['date'] = date
 
         addListItem(next_page_name, '', 'videolist', '', True, customparams=custom_params)
 
