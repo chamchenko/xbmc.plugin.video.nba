@@ -38,6 +38,9 @@ class TV:
         common.addListItem('Video Collections', '', 'video', '', isfolder=True, customparams={
             'url': 'https://content-api-prod.nba.com/public/1/endeavor/layout/watch/nbatv'
         })
+        common.addListItem('NBA TV Clips', '', 'videolist', '', True, customparams={
+            'video_tag':'nba-tv-clips', 'pagination': True
+        })
 
     @staticmethod
     def episode_menu():
