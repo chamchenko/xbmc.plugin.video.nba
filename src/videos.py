@@ -120,7 +120,7 @@ def videoPlay():
         return
 
     url = vars.config['publish_endpoint']
-    headers = { 'X-Forworded-For': '103.73.191.10',
+    headers = {
         'authorization': 'Bearer %s'%vars.access_token,
         'Content-type': 'application/x-www-form-urlencoded',
         'User-Agent': "Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0",
