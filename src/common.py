@@ -43,6 +43,9 @@ def play(video):
                     item.setProperty('inputstream.adaptive.manifest_update_parameter', 'full')
                     license_key = '%s|authorization=bearer %s|R{SSM}|' % (LICENSE_URL, video['drm'])
                     item.setProperty('inputstream.adaptive.license_key', license_key)
+                    item.setProperty('inputstream.adaptive.license_key', license_key)
+                    # may fix audio drops according to https://github.com/xbmc/inputstream.adaptive/issues/612#issuecomment-797866627
+                    item.setProperty('inputstream.adaptive.manifest_update_parameter', 'full')
 
 
     if item is not None:
