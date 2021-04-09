@@ -54,21 +54,10 @@ def videoMenu():
 
 def videoListMenu():
     xbmcplugin.setContent(int(sys.argv[1]), 'videos')
-    date = vars.params.get("date")
     video_tag = vars.params.get("video_tag")
     page = int(vars.params.get("page", 1))
-    per_page = 20
-
-    log("videoListMenu: date requested is %s, tag is %s, page is %d" % (date, video_tag, page), xbmc.LOGDEBUG)
-
-    if date:
-        selected_date = None
-        try:
-            selected_date = datetime.datetime.strptime(date, "%Y-%m-%d")
-        except:
-            selected_date = datetime.datetime.fromtimestamp(time.mktime(time.strptime(date, "%Y-%m-%d")))
-
-    query = []
+    per_page = 22
+    log("videoListMenu: tag is %s, page is %d" % (video_tag, page), xbmc.LOGDEBUG)
 
     base_url = "https://content-api-prod.nba.com/public/1/endeavor/video-list/collection/%s?"
     params = urlencode({
@@ -76,29 +65,22 @@ def videoListMenu():
         "page": page,
         "count": per_page
     })
-
     url = base_url%video_tag + params
-    log("videoListMenu: %s: url of date is %s" % (video_tag, url), xbmc.LOGDEBUG)
+    log("videoListMenu: %s: url of tag is %s" % (video_tag, url), xbmc.LOGDEBUG)
     response = str(urllib2.urlopen(url).read(), 'utf-8')
-    #response = response[response.find("{"):response.rfind("}")+1]
     log("videoListMenu: response: %s" % response, xbmc.LOGDEBUG)
     jsonresponse = json.loads(response)
     for video in jsonresponse['results']['videos']:
         name = video['title']
         release_date = video['releaseDate'].split('T')[0]
         plot = video['description']
-        # Runtime formatting
-        #minutes, seconds = divmod(video['runtime'], 60)
-        #hours, minutes = divmod(minutes, 60)
         runtime = video['program']['runtimeHours']
         thumb = video['image']
-        if not date:
-            if video['program']['runtimeHours']:
-                name = "%s (%s) - %s" % (name, runtime, release_date)
-            else:
-                name = "%s - %s" % (name, release_date)
+
+        if video['program']['runtimeHours']:
+            name = "%s (%s) - %s" % (name, runtime, release_date)
         else:
-            name = "%s (%s)" % (name, runtime)
+            name = "%s - %s" % (name, release_date)
         addListItem(url=str(video['program']['id']), name=name, mode='videoplay', iconimage=thumb)
     if vars.params.get("pagination") and page+1 <= jsonresponse['results']['pages']:
         next_page_name = xbmcaddon.Addon().getLocalizedString(50008)

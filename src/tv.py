@@ -35,7 +35,8 @@ class TV:
         common.addListItem('Select date', '', 'nba_tv_episode_menu', '', isfolder=True, customparams={
             'custom_date': True
         })
-        common.addListItem('Video Collections', '', 'video', '', isfolder=True, customparams={
+        common.addListItem('NBA TV Series', '', 'nba_tv_series', '', isfolder=True)
+        common.addListItem('Video Collections', '', 'nba_tv_videolist', '', isfolder=True, customparams={
             'url': 'https://content-api-prod.nba.com/public/1/endeavor/layout/watch/nbatv'
         })
         common.addListItem('NBA TV Clips', '', 'videolist', '', True, customparams={
@@ -75,6 +76,139 @@ class TV:
                 entry['start'], dt_et.tzname(), entry['showTitle'] if entry['showTitle'] else entry['title'])
             common.addListItem(name, '', 'nba_tv_play_episode', iconimage=entry['image'], customparams=params)
 
+    #get the list of available series
+    @staticmethod
+    def series_Menu():
+        xbmcplugin.setContent(int(sys.argv[1]), 'tvshows')
+        url = "https://content-api-prod.nba.com/public/1/endeavor/video-list/nba-tv-series"
+        json_parser = json.loads(str(urllib2.urlopen(url).read(), 'utf-8'))
+        for serie in json_parser['results']:
+            common.addListItem(
+                        serie['series']['name'],
+                        '',
+                        'nba_tv_seasons',
+                        serie['series']['coverImage']['portrait'],
+                        isfolder=True,
+                        customparams={'video_tag': serie['series']['slug'],
+                        'video_type': 'nba-tv-series', 'pagination': True})
+
+    #get the list of available seasons for a serie
+    @staticmethod
+    def season_Menu():
+        xbmcplugin.setContent(int(sys.argv[1]), 'seasons')
+        video_tag = vars.params.get("video_tag")
+        page = int(vars.params.get("page", 1))
+        per_page = 20
+        utils.log("seasonListMenu: tag is %s, page is %d" % (video_tag, page), xbmc.LOGDEBUG)
+        base_url = "https://content-api-prod.nba.com/public/1/endeavor/video-list/nba-tv-series/%s?"
+        params = urlencode({
+            "sort": "releaseDate desc",
+            "page": page,
+            "count": per_page
+        })
+        url = base_url % video_tag + params
+        response = str(urllib2.urlopen(url).read(), 'utf-8')
+        utils.log("seasonListMenu: response: %s" % response, xbmc.LOGDEBUG)
+        jsonresponse = json.loads(response)
+        seasonicon = jsonresponse['results']['series']['coverImage']['portrait']
+        # idx is the index of the season in the json data
+        # to do: avoid fetching the same page for season and episodes
+        idx = 0
+        for season in jsonresponse['results']['seasons']:
+            name = 'Season %s' % season['season']
+            common.addListItem(name, '',
+                    'nba_tv_episode',
+                    seasonicon,
+                    isfolder=True,
+                    customparams={'url':url, 'seasonidx': idx})
+            idx = idx +1
+
+    #get the list of available episodes for a season
+    @staticmethod
+    def episodes_list_Menu():
+        xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+        url = vars.params.get("url")
+        seasonidx = int(vars.params.get("seasonidx"))
+        response = str(urllib2.urlopen(url).read(), 'utf-8')
+        utils.log("episodeListMenu: response: %s" % response, xbmc.LOGDEBUG)
+        jsonresponse = json.loads(response)
+        episodes = jsonresponse['results']['seasons'][seasonidx]['episodes']
+        for episode in episodes:
+            name = episode['title']
+            release_date = episode['releaseDate'].split('T')[0]
+            plot = episode['description']
+            runtime = episode['program']['runtimeHours']
+            thumb = episode['image']
+            if episode['program']['runtimeHours']:
+                name = "%s (%s) - %s" % (name, runtime, release_date)
+            else:
+                name = "%s - %s" % (name, release_date)
+            common.addListItem(url=str(episode['program']['id']), name=name, mode='nba_tv_play_serieepisode', iconimage=thumb)
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+    @staticmethod
+    def nba_tv_videoMenu():
+        xbmcplugin.setContent(int(sys.argv[1]), 'videos')
+        url = "https://content-api-prod.nba.com/public/1/endeavor/layout/watch/nbatv"
+        json_parser = json.loads(str(urllib2.urlopen(url).read(), 'utf-8'))
+        for category in json_parser['results']['carousels']:
+            if category['type'] == "video_carousel":
+                common.addListItem(category['title'], '',
+                    'nba_tv_videoplay', category['value']['videos'][0]['image'], True,
+                    customparams={'video_tag':category['value']['slug'], 'pagination': True})
+            elif category['type'] == "collection_cards":
+                for collection in category['value']['items']:
+                    common.addListItem(collection['name'], '',
+                    'nba_tv_videoplay', collection['image'], True,
+                    customparams={'video_tag':collection['slug'], 'pagination': True})
+
+
+    @staticmethod
+    def nba_tv_videoPlay():
+        xbmcplugin.setContent(int(sys.argv[1]), 'videos')
+        video_tag = vars.params.get("video_tag")
+        page = int(vars.params.get("page", 1))
+        per_page = 22
+        utils.log("nba_tv_videoPlay: collection is %s, page is %d" % (video_tag, page), xbmc.LOGDEBUG)
+        base_url = "https://content-api-prod.nba.com/public/1/endeavor/video-list/collection/%s?"
+        params = urlencode({
+            "sort": "releaseDate desc",
+            "page": page,
+            "count": per_page
+        })
+        url = base_url % video_tag + params
+        utils.log("nba_tv_videoPlay: %s: url of collection is %s" % (video_tag, url), xbmc.LOGDEBUG)
+        response = str(urllib2.urlopen(url).read(), 'utf-8')
+        utils.log("nba_tv_videoPlay: response: %s" % response, xbmc.LOGDEBUG)
+        jsonresponse = json.loads(response)
+        for video in jsonresponse['results']['videos']:
+            name = video['title']
+            entitlement = video['entitlements']
+            release_date = video['releaseDate'].split('T')[0]
+            plot = video['description']
+            runtime = video['program']['runtimeHours']
+            thumb = video['image']
+            if video['program']['runtimeHours']:
+                name = "%s (%s) - %s" % (name, runtime, release_date)
+            else:
+                name = "%s - %s" % (name, release_date)
+            if entitlement == 'free':
+                common.addListItem(url=str(video['program']['id']), name=name, mode='videoplay', iconimage=thumb)
+            else:
+                common.addListItem(url=str(video['program']['id']), name=name, mode='nba_tv_play_serieepisode', iconimage=thumb)
+        if vars.params.get("pagination") and page+1 <= jsonresponse['results']['pages']:
+            next_page_name = xbmcaddon.Addon().getLocalizedString(50008)
+    
+            # Add "next page" link
+            custom_params = {
+                'video_tag': video_tag,
+                'page': page + 1,
+                'pagination': True
+            }
+            common.addListItem(next_page_name, '', 'nba_tv_videolist', '', True, customparams=custom_params)    
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+
     @staticmethod
     def play_live():
         live = TV.get_live()
@@ -98,6 +232,16 @@ class TV:
                     'start_timestamp': start_timestamp,
                     'duration': duration,
                 },
+            })
+            common.play(episode)
+
+    @staticmethod
+    def play_serieepisode():
+        episode = TV.get_serie_episode()
+        if episode is not None:
+            shared_data = SharedData()
+            shared_data.set('playing', {
+                'what': 'episode_nba_tv',
             })
             common.play(episode)
 
@@ -183,4 +327,41 @@ class TV:
         drm = xml.getElementsByTagName('drmToken')[0].childNodes[0].nodeValue
         utils.log(drm, xbmc.LOGDEBUG)
 
+        return {'url': url, 'drm': drm}
+
+    def get_serie_episode():
+        video_id = vars.params.get("url")
+        if not common.authenticate():
+            return None
+        url = vars.config['publish_endpoint']
+        headers = {
+            'Cookie': vars.cookies,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
+        }
+        body = {
+            'type': 'video',
+            'id': video_id,
+            'drmtoken': True,
+            'token': vars.access_token,
+            'deviceid': 'web-%s' % vars.player_id,
+            'pcid': vars.player_id,
+            'format': 'json',
+        }
+        body = urlencode(body).encode()
+        utils.log('the body of publishpoint request is: %s' % body, xbmc.LOGDEBUG)
+        try:
+            request = urllib2.Request(url, body, headers)
+            response = urllib2.urlopen(request, timeout=30)
+            content = response.read()
+        except urllib2.HTTPError as err:
+            utils.logHttpException(err, url)
+            utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
+            return None
+        content_json = json.loads(content)
+        url = content_json['path']
+        drm = content_json['drmToken']
+        utils.log('response URL from publishpoint: %s' % url, xbmc.LOGDEBUG)
+        utils.log(drm, xbmc.LOGDEBUG)
+        
         return {'url': url, 'drm': drm}
