@@ -1,49 +1,43 @@
 
 
+from __future__ import unicode_literals
+
+import sys
 import datetime
 import os
 import traceback
 
-import sys
+if sys.version_info.major >= 3:  # Python 3
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError
+    from urllib.parse import unquote_plus, urlencode, urlparse, parse_qs
+else:  # Python 2
+    from urllib2 import Request, urlopen, HTTPError
+    from urllib import unquote_plus, urlencode
+    from urlparse import urlparse, parse_qs
 
 from dateutil import tz
 import pytz
 
 import xbmc
+from xbmcvfs import translatePath, exists, mkdir
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-import xbmcvfs
 
 from PIL import Image, ImageOps
 import vars
 
-try:
-    from urllib.parse import urlencode
-    from urllib.parse import parse_qsl
-    from urllib.request import urlretrieve
-    import urllib.request  as urllib2
-except ImportError:
-    from urllib import urlencode
-    from urllib import urlretrieve
-    import urllib2
-    from urlparse import parse_qsl
-
-def stringify(STRING):
-    try:
-        return str(STRING, 'utf-8')
-    except:
-        return str(STRING).decode('utf-8')
-
 
 def fetch(url):
     log('Fetching %s' % url, xbmc.LOGINFO)
-    request = urllib2.Request(url)
-    response = stringify(urllib2.urlopen(request, timeout=30).read())
+    request = Request(url)
+    response = str(urlopen(request).read())
     log(response, xbmc.LOGDEBUG)
     return response
 
 def littleErrorPopup(error, seconds=5000):
+    log(error, xbmc.LOGERROR)
     xbmc.executebuiltin('Notification(NBA League Pass,%s,%d,)' % (error, seconds))
 
 def logHttpException(exception, url, body=""):
@@ -119,14 +113,13 @@ def getParams():
         if paramstring[len(paramstring)-1] == '/':
             paramstring = paramstring[0:len(paramstring)-2]
 
-        params = parse_qsl(paramstring)
-        params = dict(params)
+        params = parse_qs(paramstring)
     return params
 
 def addVideoListItem(name, url, iconimage):
     return addListItem(name, url, '', iconimage, False, True)
 
-def addListItem(name, url, mode, iconimage, isfolder=False, usefullurl=False, customparams={}, infoList=False):
+def addListItem(name, url, mode, iconimage, isfolder=False, usefullurl=False, customparams={}):
     if not hasattr(addListItem, "fanart_image"):
         settings = xbmcaddon.Addon(id=vars.__addon_id__)
         addListItem.fanart_image = settings.getSetting("fanart_image")
@@ -142,24 +135,18 @@ def addListItem(name, url, mode, iconimage, isfolder=False, usefullurl=False, cu
 
     # Fix problems of encoding with urlencode and utf8 chars
     for key, value in params.items():
-        params[key] = str(value)
+        params[key] = value.encode('utf8')
 
     # urlencode the params
     params = urlencode(params)
 
     generated_url = "%s?%s" % (sys.argv[0], params)
-    #liz = xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-    liz = xbmcgui.ListItem(name)
-    if not infoList:
-        liz.setInfo('video', {'title': name})
-    else:
-        liz.setInfo('video', infoList)
+    liz = xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
+    liz.setInfo('video', {'title': name})
 
     if addListItem.fanart_image:
         liz.setArt({
-            "fanart": addListItem.fanart_image,
-            "icon": "DefaultFolder.png",
-            "thumb": iconimage
+            "fanart": addListItem.fanart_image
         })
 
     if not isfolder:
@@ -183,20 +170,19 @@ def prepareSingleThumbnail(im, width, height):
     # Achieve ratio width : height
     im_temp = None
     if im.size[0] * height > im.size[1] * width: # Pad to height
-        im_temp = Image.new('RGBA', (im.size[0], int(im.size[0] * height / width)))
+        im_temp = Image.new('RGBA', (im.size[0], im.size[0] * height / width))
     else: # Pad to width
-        im_temp = Image.new('RGBA', (int(im.size[1] * width / height), im.size[1]))
-
-    im_temp.paste(im, (  int((im_temp.size[0] - im.size[0]) / 2), int((im_temp.size[1] - im.size[1]) / 2) ), im)
+        im_temp = Image.new('RGBA', (im.size[1] * width / height, im.size[1]))
+    im_temp.paste(im, ((im_temp.size[0] - im.size[0]) / 2, (im_temp.size[1] - im.size[1]) / 2), im)
 
     # Resize to fit (width, height)
-    im = ImageOps.fit(im_temp, (int(width), int(height)), int(Image.ANTIALIAS))
+    im = ImageOps.fit(im_temp, (width, height), Image.ANTIALIAS)
     return im
 
 def generateCombinedThumbnail(v, h, width=2*500, height=500, padding=10):
-    thumbnails_path = os.path.join(xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')), "thumbnails")
-    if not xbmcvfs.exists(thumbnails_path):
-        xbmcvfs.mkdir(thumbnails_path)
+    thumbnails_path = os.path.join(translatePath(xbmcaddon.Addon().getAddonInfo('profile')), "thumbnails")
+    if not exists(thumbnails_path):
+        mkdir(thumbnails_path)
     combined_thumbnail_fullname = os.path.join(thumbnails_path, ("%s-%s.png" % (v.lower(), h.lower())))
     if vars.use_cached_thumbnails and os.path.isfile(combined_thumbnail_fullname):
         return combined_thumbnail_fullname
@@ -204,16 +190,16 @@ def generateCombinedThumbnail(v, h, width=2*500, height=500, padding=10):
     SINGLE_THUMBNAIL_URL_MASK = "http://i.cdn.turner.com/nba/nba/.element/img/1.0/teamsites/logos/teamlogos_500x500/%s.png"
     for (t, single_thumbnail_fullname) in zip([v, h], single_thumbnail_fullnames):
         if not vars.use_cached_thumbnails or not os.path.isfile(single_thumbnail_fullname):
-            urlretrieve(SINGLE_THUMBNAIL_URL_MASK % t.lower(), single_thumbnail_fullname)
+            urllib.urlretrieve(SINGLE_THUMBNAIL_URL_MASK % t.lower(), single_thumbnail_fullname)
 
     try:
         [im_v, im_h] = [Image.open(single_thumbnail_fullname).convert('RGBA')
             for single_thumbnail_fullname in single_thumbnail_fullnames]
-        [im_v, im_h] = [prepareSingleThumbnail(im, int(width / 2 - 2 * padding), int(height - 2 * padding)) for im in [im_v, im_h]]
+        [im_v, im_h] = [prepareSingleThumbnail(im, width / 2 - 2 * padding, height - 2 * padding) for im in [im_v, im_h]]
 
         im_combined = Image.new('RGBA', (width, height))
         im_combined.paste(im_v, (padding, padding), im_v)
-        im_combined.paste(im_h, (int(width / 2 + padding), padding), im_h)
+        im_combined.paste(im_h, (width / 2 + padding, padding), im_h)
         im_combined.save(combined_thumbnail_fullname)
         return combined_thumbnail_fullname
     except:

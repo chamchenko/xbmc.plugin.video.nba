@@ -72,7 +72,3 @@ msgstr ""
 msgctxt "#50024"
 msgid "Please fill E-mail and Password in the addon's settings menu"
 msgstr ""
-
-msgctxt "#50025"
-msgid "You're account don't have an active subscrition or your subscrition doesn't match your geolocation"
-msgstr ""

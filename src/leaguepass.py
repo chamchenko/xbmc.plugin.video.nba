@@ -1,7 +1,19 @@
 
 
+import sys
+
 from datetime import date
 from datetime import timedelta
+
+if sys.version_info.major >= 3:  # Python 3
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError
+    from urllib.parse import unquote_plus, urlencode, urlparse, parse_qs
+else:  # Python 2
+    from urllib2 import Request, urlopen, HTTPError
+    from urllib import unquote_plus, urlencode
+    from urlparse import urlparse, parse_qs
+
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 import sys
 
@@ -13,10 +25,7 @@ from favteam import *
 import vars
 
 from tv import TV
-try:
-    from urllib.parse import unquote_plus
-except ImportError:
-    from urllib import unquote_plus
+
 
 def mainMenu():
     addListItem('Live games', 'live', 'live', '', isfolder=True)
@@ -102,18 +111,6 @@ elif mode == 'nba_tv_episode_menu':
     TV.episode_menu()
 elif mode == 'nba_tv_play_episode':
     TV.play_episode()
-elif mode == "nba_tv_series":
-    TV.series_Menu()
-elif mode == "nba_tv_seasons":
-    TV.season_Menu()
-elif mode == "nba_tv_episode":
-    TV.episodes_list_Menu()
-elif mode == 'nba_tv_play_serieepisode':
-    TV.play_serieepisode()
-elif mode == 'nba_tv_videolist':
-    TV.nba_tv_videoMenu()
-elif mode == 'nba_tv_videoplay':
-    TV.nba_tv_videoPlay()
 elif mode == "favteam":
     if url == "older":
         favTeamOlderMenu()

@@ -1,10 +1,11 @@
 
 
+from __future__ import unicode_literals
+
 import json
 
-import xbmc
+from xbmcvfs import translatePath, exists, mkdir
 import xbmcaddon
-import xbmcvfs
 
 
 class SharedData:
@@ -12,9 +13,9 @@ class SharedData:
     __DEFAULT_JSON_CONTENT = {}
 
     def __init__(self):
-        self.__folder = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile'))
-        if not xbmcvfs.exists(self.__folder):
-            xbmcvfs.mkdir(self.__folder)
+        self.__folder = translatePath(xbmcaddon.Addon().getAddonInfo('profile'))
+        if not exists(self.__folder):
+            mkdir(self.__folder)
         self.__file_path = self.__folder + "shared_data.json"
 
         self.__save_json_content(self.__DEFAULT_JSON_CONTENT)
