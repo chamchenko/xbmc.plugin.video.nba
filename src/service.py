@@ -1,28 +1,22 @@
 
 
-from __future__ import unicode_literals
-
 from tv import TV
 
-from xbmcvfs import translatePath, exists, mkdir
-import xbmcaddon
-import time, urllib, os, sys
-
-if sys.version_info.major >= 3:  # Python 3
-    from urllib.request import Request, urlopen
-    from urllib.error import HTTPError
-    from urllib.parse import unquote_plus, urlencode, urlparse, parse_qs
-else:  # Python 2
-    from urllib2 import Request, urlopen, HTTPError
-    from urllib import unquote_plus, urlencode
+import xbmc, xbmcaddon, xbmcvfs
+import time, os, sys
+try:
+    from urllib.parse import unquote
+    from urllib.parse import urlparse
+    from urllib.parse import parse_qs
+except ImportError:
+    from urllib import unquote
     from urlparse import urlparse, parse_qs
-
 import vars
 
 
 # Add src/service in load paths
 my_addon = xbmcaddon.Addon(vars.__addon_id__)
-addon_dir = translatePath(my_addon.getAddonInfo('path'))
+addon_dir = xbmc.translatePath(my_addon.getAddonInfo('path'))
 sys.path.append(os.path.join(addon_dir, 'src', 'service'))
 
 import utils
@@ -63,7 +57,7 @@ class PollingThread(BaseThread):
         # Get the hdnea param, where the "expires" param is
         hdnea_params = query_params.get("hdnea")[0]
         hdnea_params = hdnea_params.replace('~', '&')
-        hdnea_params = urllib.unquote(hdnea_params)
+        hdnea_params = unquote(hdnea_params)
 
         self.expires = parse_qs(hdnea_params).get("expires", 0)[0]
         self.expires = int(self.expires)

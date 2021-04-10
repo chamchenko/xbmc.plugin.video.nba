@@ -1,17 +1,6 @@
 
 
-import sys
 import json
-
-if sys.version_info.major >= 3:  # Python 3
-    from urllib.request import Request, urlopen
-    from urllib.error import HTTPError
-    from urllib.parse import unquote_plus, urlencode, urlparse, parse_qs
-else:  # Python 2
-    from urllib2 import Request, urlopen, HTTPError
-    from urllib import unquote_plus, urlencode
-    from urlparse import urlparse, parse_qs
-
 import datetime, time
 from datetime import timedelta
 import xbmc, xbmcgui
@@ -21,7 +10,10 @@ import calendar
 from utils import *
 from common import *
 import vars
-
+try:
+    import urllib.request  as urllib2
+except ImportError:
+    import urllib2
 
 def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
     try:
@@ -31,8 +23,8 @@ def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
         log('Requesting %s' % schedule, xbmc.LOGDEBUG)
 
         now_datetime_est = nowEST()
-        req = Request(schedule, None)
-        response = str(urlopen(req).read())
+        req = urllib2.Request(schedule, None)
+        response = stringify(urllib2.urlopen(req, timeout=30).read())
         js = json.loads(response[response.find("{"):])
 
         unknown_teams = {}
@@ -44,8 +36,8 @@ def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
                 v = details.get('v', '')
                 game_id = details.get('id', '')
                 game_start_date_est = details.get('d', '')
-                vs = details.get('vs')
-                hs = details.get('hs')
+                vs = details.get('vs', '')
+                hs = details.get('hs', '')
                 gs = details.get('gs', '')
 
                 video_has_away_feed = False
@@ -85,8 +77,8 @@ def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
 
                     # Add the teams' names and the scores if needed
                     name += ' %s vs %s' % (visitor_name, host_name)
-                    if vars.show_records_and_scores and vs is not None and hs is not None:
-                        name += ' %s:%s' % (vs, hs)
+                    if vars.show_records_and_scores and not future_video:
+                        name += ' %s:%s' % (stringify(vs), stringify(hs))
 
                     thumbnail_url = generateCombinedThumbnail(v, h)
 
@@ -131,10 +123,10 @@ def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
                         addListItem(name, url="", mode="playgame", iconimage=thumbnail_url, customparams=params)
 
         if unknown_teams:
-            log("Unknown teams: %s" % str(unknown_teams), xbmc.LOGWARNING)
+            log("Unknown teams: %s" % stringify(unknown_teams), xbmc.LOGWARNING)
 
     except Exception as e:
-        xbmc.executebuiltin('Notification(NBA League Pass,'+str(e)+',5000,)')
+        xbmc.executebuiltin('Notification(NBA League Pass,'+stringify(e)+',5000,)')
         log(traceback.format_exc(), xbmc.LOGDEBUG)
         pass
 
@@ -153,7 +145,7 @@ def favTeamMenu():
             addListItem('Set your favorite team in the settings', '', 'favteam', '', False)
             return
 
-    log("Loading games for: %s" % str(vars.fav_team_abbrs))
+    log("Loading games for: %s" % vars.fav_team_abbrs)
     tday = getCurrentMonday()
     addFavTeamGameLinks(tday, vars.fav_team_abbrs, 'live')
     weeksBack = 0
@@ -168,7 +160,7 @@ def favTeamMenu():
 def favTeamOlderMenu():
     updateFavTeam()
 
-    log("Loading older games for: %s" % str(vars.fav_team_abbrs))
+    log("Loading older games for: %s" % vars.fav_team_abbrs)
     tday = getCurrentMonday() - timedelta(14)
     while monthIsInSeason(tday.month):
         addFavTeamGameLinks(tday, vars.fav_team_abbrs)
