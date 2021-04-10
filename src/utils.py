@@ -29,11 +29,17 @@ except ImportError:
     import urllib2
     from urlparse import parse_qsl
 
+def stringify(STRING):
+    try:
+        return str(STRING, 'utf-8')
+    except:
+        return str(STRING).decode('utf-8')
+
 
 def fetch(url):
     log('Fetching %s' % url, xbmc.LOGINFO)
     request = urllib2.Request(url)
-    response = str(urllib2.urlopen(request, timeout=30).read(), 'utf-8')
+    response = stringify(urllib2.urlopen(request, timeout=30).read())
     log(response, xbmc.LOGDEBUG)
     return response
 
@@ -120,7 +126,7 @@ def getParams():
 def addVideoListItem(name, url, iconimage):
     return addListItem(name, url, '', iconimage, False, True)
 
-def addListItem(name, url, mode, iconimage, isfolder=False, usefullurl=False, customparams={}):
+def addListItem(name, url, mode, iconimage, isfolder=False, usefullurl=False, customparams={}, infoList=False):
     if not hasattr(addListItem, "fanart_image"):
         settings = xbmcaddon.Addon(id=vars.__addon_id__)
         addListItem.fanart_image = settings.getSetting("fanart_image")
@@ -144,7 +150,10 @@ def addListItem(name, url, mode, iconimage, isfolder=False, usefullurl=False, cu
     generated_url = "%s?%s" % (sys.argv[0], params)
     #liz = xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=iconimage)
     liz = xbmcgui.ListItem(name)
-    liz.setInfo('video', {'title': name})
+    if not infoList:
+        liz.setInfo('video', {'title': name})
+    else:
+        liz.setInfo('video', infoList)
 
     if addListItem.fanart_image:
         liz.setArt({
@@ -185,7 +194,7 @@ def prepareSingleThumbnail(im, width, height):
     return im
 
 def generateCombinedThumbnail(v, h, width=2*500, height=500, padding=10):
-    thumbnails_path = os.path.join(xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo('profile')), "thumbnails")
+    thumbnails_path = os.path.join(xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')), "thumbnails")
     if not xbmcvfs.exists(thumbnails_path):
         xbmcvfs.mkdir(thumbnails_path)
     combined_thumbnail_fullname = os.path.join(thumbnails_path, ("%s-%s.png" % (v.lower(), h.lower())))

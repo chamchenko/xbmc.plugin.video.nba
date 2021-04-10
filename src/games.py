@@ -87,7 +87,7 @@ def get_game(video_id, video_type, video_ishomefeed, start_time, duration):
         utils.logHttpException(err, url)
         utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
         return None
-    xml = parseString(str(content, 'utf-8'))
+    xml = parseString(utils.stringify(content))
     url = xml.getElementsByTagName("path")[0].childNodes[0].nodeValue
     utils.log("response URL from publishpoint: %s" % url, xbmc.LOGDEBUG)
     drm = xml.getElementsByTagName("drmToken")[0].childNodes[0].nodeValue

@@ -102,7 +102,6 @@ elif mode == 'nba_tv_episode_menu':
     TV.episode_menu()
 elif mode == 'nba_tv_play_episode':
     TV.play_episode()
-
 elif mode == "nba_tv_series":
     TV.series_Menu()
 elif mode == "nba_tv_seasons":
@@ -111,7 +110,6 @@ elif mode == "nba_tv_episode":
     TV.episodes_list_Menu()
 elif mode == 'nba_tv_play_serieepisode':
     TV.play_serieepisode()
-    
 elif mode == 'nba_tv_videolist':
     TV.nba_tv_videoMenu()
 elif mode == 'nba_tv_videoplay':

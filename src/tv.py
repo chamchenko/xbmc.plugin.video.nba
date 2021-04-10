@@ -81,33 +81,44 @@ class TV:
     def series_Menu():
         xbmcplugin.setContent(int(sys.argv[1]), 'tvshows')
         url = "https://content-api-prod.nba.com/public/1/endeavor/video-list/nba-tv-series"
-        json_parser = json.loads(str(urllib2.urlopen(url).read(), 'utf-8'))
+        json_parser = json.loads(utils.stringify(urllib2.urlopen(url).read()))
         for serie in json_parser['results']:
+            name = serie['series']['name']
+            plot = serie['series']['description']
+            slug = serie['series']['slug']
+            thumb = serie['series']['coverImage']['portrait']
+            infoList = {
+                    "mediatype": "tvshow",
+                    "title": name,
+                    "TVShowTitle": name,
+                    "plot": plot
+                    }
             common.addListItem(
-                        serie['series']['name'],
+                        name,
                         '',
                         'nba_tv_seasons',
-                        serie['series']['coverImage']['portrait'],
+                        thumb,
                         isfolder=True,
-                        customparams={'video_tag': serie['series']['slug'],
-                        'video_type': 'nba-tv-series', 'pagination': True})
+                        customparams={'slug': slug, 'video_type': 'nba-tv-series', 'serie_title': name,  'pagination': True},
+                        infoList=infoList)
 
     #get the list of available seasons for a serie
     @staticmethod
     def season_Menu():
         xbmcplugin.setContent(int(sys.argv[1]), 'seasons')
-        video_tag = vars.params.get("video_tag")
+        slug = vars.params.get("slug")
+        serie_title = vars.params.get("serie_title")
         page = int(vars.params.get("page", 1))
         per_page = 20
-        utils.log("seasonListMenu: tag is %s, page is %d" % (video_tag, page), xbmc.LOGDEBUG)
+        utils.log("seasonListMenu: tag is %s, page is %d" % (slug, page), xbmc.LOGDEBUG)
         base_url = "https://content-api-prod.nba.com/public/1/endeavor/video-list/nba-tv-series/%s?"
         params = urlencode({
             "sort": "releaseDate desc",
             "page": page,
             "count": per_page
         })
-        url = base_url % video_tag + params
-        response = str(urllib2.urlopen(url).read(), 'utf-8')
+        url = base_url % slug + params
+        response = utils.stringify(urllib2.urlopen(url).read())
         utils.log("seasonListMenu: response: %s" % response, xbmc.LOGDEBUG)
         jsonresponse = json.loads(response)
         seasonicon = jsonresponse['results']['series']['coverImage']['portrait']
@@ -120,7 +131,7 @@ class TV:
                     'nba_tv_episode',
                     seasonicon,
                     isfolder=True,
-                    customparams={'url':url, 'seasonidx': idx})
+                    customparams={'url':url, 'seasonidx': idx, 'serie_title': serie_title})
             idx = idx +1
 
     #get the list of available episodes for a season
@@ -128,8 +139,9 @@ class TV:
     def episodes_list_Menu():
         xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
         url = vars.params.get("url")
+        serie_title = vars.params.get("serie_title")
         seasonidx = int(vars.params.get("seasonidx"))
-        response = str(urllib2.urlopen(url).read(), 'utf-8')
+        response = utils.stringify(urllib2.urlopen(url).read())
         utils.log("episodeListMenu: response: %s" % response, xbmc.LOGDEBUG)
         jsonresponse = json.loads(response)
         episodes = jsonresponse['results']['seasons'][seasonidx]['episodes']
@@ -137,48 +149,58 @@ class TV:
             name = episode['title']
             release_date = episode['releaseDate'].split('T')[0]
             plot = episode['description']
-            runtime = episode['program']['runtimeHours']
+            runtime = episode['program']['runtimeHours'].split(':')
+            seconds = int(runtime[-1])
+            minutes = int(runtime[-2])
+            duration = minutes * 60 + seconds
+            if len(runtime) == 3:
+                hours = int(runtime[0])
+                duration = duration + hours * 3600
             thumb = episode['image']
-            if episode['program']['runtimeHours']:
-                name = "%s (%s) - %s" % (name, runtime, release_date)
-            else:
-                name = "%s - %s" % (name, release_date)
-            common.addListItem(url=str(episode['program']['id']), name=name, mode='nba_tv_play_serieepisode', iconimage=thumb)
+            infoList = {
+                    "mediatype": "episode",
+                    "title": name,
+                    "TVShowTitle": serie_title,
+                    "duration": duration,
+                    "plot": plot,
+                    "aired":str(release_date)
+                    }
+            common.addListItem(url=str(episode['program']['id']), name=name, mode='nba_tv_play_serieepisode', iconimage=thumb, infoList=infoList)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
     @staticmethod
     def nba_tv_videoMenu():
         xbmcplugin.setContent(int(sys.argv[1]), 'videos')
         url = "https://content-api-prod.nba.com/public/1/endeavor/layout/watch/nbatv"
-        json_parser = json.loads(str(urllib2.urlopen(url).read(), 'utf-8'))
+        json_parser = json.loads(utils.stringify(urllib2.urlopen(url).read()))
         for category in json_parser['results']['carousels']:
             if category['type'] == "video_carousel":
                 common.addListItem(category['title'], '',
                     'nba_tv_videoplay', category['value']['videos'][0]['image'], True,
-                    customparams={'video_tag':category['value']['slug'], 'pagination': True})
+                    customparams={'slug':category['value']['slug'], 'pagination': True})
             elif category['type'] == "collection_cards":
                 for collection in category['value']['items']:
                     common.addListItem(collection['name'], '',
                     'nba_tv_videoplay', collection['image'], True,
-                    customparams={'video_tag':collection['slug'], 'pagination': True})
+                    customparams={'slug':collection['slug'], 'pagination': True})
 
 
     @staticmethod
     def nba_tv_videoPlay():
         xbmcplugin.setContent(int(sys.argv[1]), 'videos')
-        video_tag = vars.params.get("video_tag")
+        slug = vars.params.get("slug")
         page = int(vars.params.get("page", 1))
         per_page = 22
-        utils.log("nba_tv_videoPlay: collection is %s, page is %d" % (video_tag, page), xbmc.LOGDEBUG)
+        utils.log("nba_tv_videoPlay: collection is %s, page is %d" % (slug, page), xbmc.LOGDEBUG)
         base_url = "https://content-api-prod.nba.com/public/1/endeavor/video-list/collection/%s?"
         params = urlencode({
             "sort": "releaseDate desc",
             "page": page,
             "count": per_page
         })
-        url = base_url % video_tag + params
-        utils.log("nba_tv_videoPlay: %s: url of collection is %s" % (video_tag, url), xbmc.LOGDEBUG)
-        response = str(urllib2.urlopen(url).read(), 'utf-8')
+        url = base_url % slug + params
+        utils.log("nba_tv_videoPlay: %s: url of collection is %s" % (slug, url), xbmc.LOGDEBUG)
+        response = utils.stringify(urllib2.urlopen(url).read())
         utils.log("nba_tv_videoPlay: response: %s" % response, xbmc.LOGDEBUG)
         jsonresponse = json.loads(response)
         for video in jsonresponse['results']['videos']:
@@ -186,22 +208,31 @@ class TV:
             entitlement = video['entitlements']
             release_date = video['releaseDate'].split('T')[0]
             plot = video['description']
-            runtime = video['program']['runtimeHours']
             thumb = video['image']
-            if video['program']['runtimeHours']:
-                name = "%s (%s) - %s" % (name, runtime, release_date)
-            else:
-                name = "%s - %s" % (name, release_date)
+            runtime = video['program']['runtimeHours'].split(':')
+            seconds = int(runtime[-1])
+            minutes = int(runtime[-2])
+            duration = minutes * 60 + seconds
+            if len(runtime) == 3:
+                hours = int(runtime[0])
+                duration = duration + hours * 3600
+            infoList = {
+                    "mediatype": "video",
+                    "title": name,
+                    "duration": duration,
+                    "plot": plot,
+                    "aired":str(release_date)
+                    }
             if entitlement == 'free':
-                common.addListItem(url=str(video['program']['id']), name=name, mode='videoplay', iconimage=thumb)
+                common.addListItem(url=str(video['program']['id']), name=name, mode='videoplay', iconimage=thumb, infoList=infoList)
             else:
-                common.addListItem(url=str(video['program']['id']), name=name, mode='nba_tv_play_serieepisode', iconimage=thumb)
+                common.addListItem(url=str(video['program']['id']), name=name, mode='nba_tv_play_serieepisode', iconimage=thumb, infoList=infoList)
         if vars.params.get("pagination") and page+1 <= jsonresponse['results']['pages']:
             next_page_name = xbmcaddon.Addon().getLocalizedString(50008)
     
             # Add "next page" link
             custom_params = {
-                'video_tag': video_tag,
+                'slug': slug,
                 'page': page + 1,
                 'pagination': True
             }
@@ -280,7 +311,7 @@ class TV:
             utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
             return None
 
-        xml = parseString(str(content, 'utf-8'))
+        xml = parseString(utils.stringify(content))
         url = xml.getElementsByTagName('path')[0].childNodes[0].nodeValue
         utils.log('response URL from publishpoint: %s' % url, xbmc.LOGDEBUG)
         drm = xml.getElementsByTagName('drmToken')[0].childNodes[0].nodeValue
@@ -321,7 +352,7 @@ class TV:
             utils.littleErrorPopup(xbmcaddon.Addon().getLocalizedString(50020))
             return None
 
-        xml = parseString(str(content, 'utf-8'))
+        xml = parseString(utils.stringify(content))
         url = xml.getElementsByTagName('path')[0].childNodes[0].nodeValue
         utils.log('response URL from publishpoint: %s' % url, xbmc.LOGDEBUG)
         drm = xml.getElementsByTagName('drmToken')[0].childNodes[0].nodeValue
@@ -329,6 +360,7 @@ class TV:
 
         return {'url': url, 'drm': drm}
 
+    @staticmethod
     def get_serie_episode():
         video_id = vars.params.get("url")
         if not common.authenticate():

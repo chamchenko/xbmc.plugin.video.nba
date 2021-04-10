@@ -24,7 +24,7 @@ def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
 
         now_datetime_est = nowEST()
         req = urllib2.Request(schedule, None)
-        response = str(urllib2.urlopen(req, timeout=30).read(), 'utf-8')
+        response = stringify(urllib2.urlopen(req, timeout=30).read())
         js = json.loads(response[response.find("{"):])
 
         unknown_teams = {}
@@ -78,7 +78,7 @@ def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
                     # Add the teams' names and the scores if needed
                     name += ' %s vs %s' % (visitor_name, host_name)
                     if vars.show_records_and_scores and not future_video:
-                        name += ' %s:%s' % (str(vs, 'utf8'), str(hs, 'utf8'))
+                        name += ' %s:%s' % (stringify(vs), stringify(hs))
 
                     thumbnail_url = generateCombinedThumbnail(v, h)
 
@@ -123,10 +123,10 @@ def addFavTeamGameLinks(fromDate, favTeamAbbrs, video_type='archive'):
                         addListItem(name, url="", mode="playgame", iconimage=thumbnail_url, customparams=params)
 
         if unknown_teams:
-            log("Unknown teams: %s" % str(unknown_teams, 'utf8'), xbmc.LOGWARNING)
+            log("Unknown teams: %s" % stringify(unknown_teams), xbmc.LOGWARNING)
 
     except Exception as e:
-        xbmc.executebuiltin('Notification(NBA League Pass,'+str(e, 'utf8')+',5000,)')
+        xbmc.executebuiltin('Notification(NBA League Pass,'+stringify(e)+',5000,)')
         log(traceback.format_exc(), xbmc.LOGDEBUG)
         pass
 

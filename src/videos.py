@@ -40,7 +40,7 @@ def videoMenu():
     url = vars.params.get("url", None)
     if not url:
         url = "https://content-api-prod.nba.com/public/1/endeavor/layout/watch/landing"
-    json_parser = json.loads(str(urllib2.urlopen(url).read(), 'utf-8'))
+    json_parser = json.loads(stringify(urllib2.urlopen(url).read()))
     for category in json_parser['results']['carousels']:
         if category['type'] == "video_carousel":
             addListItem(category['title'], '',
@@ -67,21 +67,29 @@ def videoListMenu():
     })
     url = base_url%video_tag + params
     log("videoListMenu: %s: url of tag is %s" % (video_tag, url), xbmc.LOGDEBUG)
-    response = str(urllib2.urlopen(url).read(), 'utf-8')
+    response = stringify(urllib2.urlopen(url).read())
     log("videoListMenu: response: %s" % response, xbmc.LOGDEBUG)
     jsonresponse = json.loads(response)
     for video in jsonresponse['results']['videos']:
         name = video['title']
+        thumb = video['image']
         release_date = video['releaseDate'].split('T')[0]
         plot = video['description']
-        runtime = video['program']['runtimeHours']
-        thumb = video['image']
-
-        if video['program']['runtimeHours']:
-            name = "%s (%s) - %s" % (name, runtime, release_date)
-        else:
-            name = "%s - %s" % (name, release_date)
-        addListItem(url=str(video['program']['id']), name=name, mode='videoplay', iconimage=thumb)
+        runtime = video['program']['runtimeHours'].split(':')
+        seconds = int(runtime[-1])
+        minutes = int(runtime[-2])
+        duration = minutes * 60 + seconds
+        if len(runtime) == 3:
+            hours = int(runtime[0])
+            duration = duration + hours * 3600
+        infoList = {
+                "mediatype": "video",
+                "title": name,
+                "duration": duration,
+                "plot": plot,
+                "aired":str(release_date)
+                    }
+        addListItem(url=str(video['program']['id']), name=name, mode='videoplay', iconimage=thumb, infoList=infoList)
     if vars.params.get("pagination") and page+1 <= jsonresponse['results']['pages']:
         next_page_name = xbmcaddon.Addon().getLocalizedString(50008)
 
@@ -121,7 +129,7 @@ def videoPlay():
         littleErrorPopup("Failed to get video url. Please check log for details")
         return ''
 
-    json_parser = json.loads(str(content, 'utf-8'))
+    json_parser = json.loads(stringify(content))
     video_url = json_parser['path']
     log("videoPlay: video url is %s" % video_url, xbmc.LOGDEBUG)
 
