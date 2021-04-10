@@ -1,5 +1,3 @@
-
-
 import xbmc, xbmcaddon, xbmcvfs
 import sys, os
 
